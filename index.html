@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Hoot Client Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     HOOT BRAND COLORS — edit these to match your brand
+     ============================================================ */
+  :root {
+    --hoot-black:     #1a1a18;
+    --hoot-white:     #fafaf7;
+    --hoot-cream:     #f2f0e8;
+    --hoot-mid:       #e4e1d4;
+    --hoot-muted:     #8a8878;
+    --hoot-accent:    #c8521a;   /* swap for your brand orange/coral */
+    --hoot-teal:      #1a6b52;
+    --hoot-purple:    #4a3fa0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--hoot-cream);
+    color: var(--hoot-black);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .outer {
+    width: 100%;
+    max-width: 780px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 48px;
+  }
+  .header-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--hoot-muted);
+    margin-bottom: 10px;
+  }
+  .header-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(32px, 5vw, 52px);
+    line-height: 1.05;
+    color: var(--hoot-black);
+    margin-bottom: 14px;
+  }
+  .header-title em {
+    font-style: italic;
+    color: var(--hoot-accent);
+  }
+  .header-sub {
+    font-size: 15px;
+    color: var(--hoot-muted);
+    max-width: 480px;
+    line-height: 1.6;
+  }
+
+  /* Progress dots */
+  .progress {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    align-items: center;
+  }
+  .prog-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--hoot-mid);
+    cursor: pointer;
+    transition: all 0.25s;
+    border: none;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .prog-dot.done { background: var(--hoot-teal); }
+  .prog-dot.active { background: var(--hoot-black); width: 28px; border-radius: 4px; }
+  .prog-label {
+    font-size: 12px;
+    color: var(--hoot-muted);
+    margin-left: 6px;
+  }
+
+  /* Stage card */
+  .card {
+    background: var(--hoot-white);
+    border: 1px solid var(--hoot-mid);
+    border-radius: 16px;
+    padding: 36px 40px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--card-accent, var(--hoot-accent));
+    border-radius: 16px 0 0 16px;
+  }
+
+  .card-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--hoot-muted);
+    margin-bottom: 6px;
+  }
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+  .card-subtitle {
+    font-size: 14px;
+    color: var(--hoot-muted);
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+
+  /* Section heads */
+  .section-head {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--hoot-muted);
+    margin-bottom: 10px;
+  }
+
+  /* People chips */
+  .people-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px 5px 8px;
+    border-radius: 100px;
+    border: 1px solid var(--hoot-mid);
+    background: var(--hoot-cream);
+    font-size: 12px;
+  }
+  .chip-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .chip-name { color: var(--hoot-black); font-weight: 500; }
+  .chip-role { color: var(--hoot-muted); }
+
+  /* Owns grid */
+  .owns-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 540px) {
+    .owns-grid { grid-template-columns: 1fr; }
+    .card { padding: 24px 20px; }
+  }
+  .owns-item {
+    background: var(--hoot-cream);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .owns-who {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--hoot-muted);
+    margin-bottom: 4px;
+  }
+  .owns-what {
+    font-size: 13px;
+    color: var(--hoot-black);
+    line-height: 1.4;
+  }
+
+  /* Ops bar */
+  .ops-bar {
+    border-left: 3px solid var(--hoot-mid);
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--hoot-muted);
+    line-height: 1.5;
+    margin-bottom: 4px;
+  }
+  .ops-bar strong {
+    color: var(--hoot-black);
+    font-weight: 500;
+  }
+
+  /* Cycle note */
+  .cycle-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--hoot-muted);
+    background: var(--hoot-cream);
+    border: 1px solid var(--hoot-mid);
+    border-radius: 100px;
+    padding: 5px 12px;
+  }
+
+  /* Nav */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-btn {
+    background: var(--hoot-white);
+    border: 1px solid var(--hoot-mid);
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--hoot-black);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .nav-btn:hover { background: var(--hoot-mid); }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+  .nav-btn.primary {
+    background: var(--hoot-black);
+    border-color: var(--hoot-black);
+    color: var(--hoot-white);
+  }
+  .nav-btn.primary:hover { opacity: 0.85; }
+  .nav-counter {
+    font-size: 13px;
+    color: var(--hoot-muted);
+  }
+</style>
+</head>
+<body>
+<div class="outer">
+
+  <div class="header">
+    <div class="header-eyebrow">Hoot Design Company</div>
+    <h1 class="header-title">The client <em>journey</em></h1>
+    <p class="header-sub">How every client moves through our agency — from first conversation to long-term partnership.</p>
+  </div>
+
+  <div class="progress" id="progress"></div>
+  <div class="card" id="card"></div>
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)">Back</button>
+    <span class="nav-counter" id="counter"></span>
+    <button class="nav-btn primary" id="btn-next" onclick="move(1)">Next &rarr;</button>
+  </div>
+
+</div>
+
+<script>
+/* ================================================================
+   EDITABLE CONTENT — everything below this line is the data.
+   To update a stage: find it by its "label", then change the
+   text inside the quotes. Don't change the structure or commas.
+
+   PEOPLE COLORS available: "teal", "purple", "coral", "gray", "pink"
+   ================================================================ */
+
+const STAGES = [
+  {
+    label: "Stage 1",
+    title: "MD closes the deal",
+    subtitle: "Every client enters through the same door.",
+    accentColor: "#4a3fa0",
+    people: [
+      { name: "Managing Director", color: "purple", role: "Leads" },
+    ],
+    owns: [
+      { who: "Managing Director", what: "Sells the vision, sets expectations, closes" },
+      { who: "Managing Director", what: "Introduces Hoot's Brand Being process" },
+    ],
+    ops: "Ops sets up the client in systems, confirms capacity, and schedules kickoff.",
+    cycle: null,
+  },
+  {
+    label: "Stage 2",
+    title: "Client meets the team",
+    subtitle: "MD introduces the full crew — client knows every face before work starts.",
+    accentColor: "#4a3fa0",
+    people: [
+      { name: "Managing Director", color: "purple", role: "Hosts" },
+      { name: "Account Director",  color: "teal",   role: "Introduced" },
+      { name: "Brand Manager",     color: "teal",   role: "Introduced" },
+      { name: "Creative Director", color: "coral",  role: "Introduced" },
+    ],
+    owns: [
+      { who: "MD",      what: "Leads the intro, frames each person's role" },
+      { who: "AD + BM", what: "Begin building the client relationship" },
+      { who: "CD",      what: "Sets creative context and process expectations" },
+    ],
+    ops: "Ops confirms project timeline, assigns capacity, and opens workflow tracking.",
+    cycle: null,
+  },
+  {
+    label: "Stage 3",
+    title: "CD leads Brand Being",
+    subtitle: "Discovery, workshops, and brand system development.",
+    accentColor: "#c8521a",
+    people: [
+      { name: "Creative Director",  color: "coral", role: "Leads" },
+      { name: "Brand Manager",      color: "teal",  role: "Client liaison" },
+      { name: "Account Director",   color: "teal",  role: "Oversight" },
+      { name: "Strategist",         color: "teal",  role: "Contributor" },
+      { name: "Designers + Writer", color: "pink",  role: "Execute" },
+    ],
+    owns: [
+      { who: "Creative Director", what: "Owns workshops, deliverables, and brand standard" },
+      { who: "Brand Manager",     what: "Client relationship — day-to-day contact" },
+      { who: "Strategist",        what: "Strategic input and hard questions in workshops" },
+      { who: "AD",                what: "Manages BM, ensures relationship stays strong" },
+    ],
+    ops: "Ops tracks project milestones, flags capacity risks, and holds team to reporting cadence.",
+    cycle: null,
+  },
+  {
+    label: "Stage 4",
+    title: "Brand Doing begins",
+    subtitle: "Brand Being delivers. Retainer kicks off. Strategist steps fully in.",
+    accentColor: "#1a6b52",
+    people: [
+      { name: "Account Director",  color: "teal",  role: "Leads transition" },
+      { name: "Brand Manager",     color: "teal",  role: "Client owner" },
+      { name: "Strategist",        color: "teal",  role: "Activated" },
+      { name: "Creative Director", color: "coral", role: "Hands off to ACD" },
+    ],
+    owns: [
+      { who: "Strategist",    what: "Brand Doing kickoff — sets targets and direction" },
+      { who: "Brand Manager", what: "Owns client communication and satisfaction" },
+      { who: "AD",            what: "Ensures clean handoff, no dropped threads" },
+      { who: "CD",            what: "Sets creative standard for ACD to execute to" },
+    ],
+    ops: "Ops transitions to retainer cadence — recurring workflow, utilization monitoring begins.",
+    cycle: null,
+  },
+  {
+    label: "Stage 5",
+    title: "ACD + Strategist run the engine",
+    subtitle: "Quarterly cycles of strategy, execution, and review — CD supports when needed.",
+    accentColor: "#1a6b52",
+    people: [
+      { name: "Strategist",         color: "teal",  role: "Sets quarterly plan" },
+      { name: "Brand Manager",      color: "teal",  role: "Client relationship" },
+      { name: "ACD",                color: "coral", role: "Creative quality gate" },
+      { name: "Designers + Writer", color: "pink",  role: "Execute" },
+      { name: "CD",                 color: "coral", role: "Support + standard" },
+    ],
+    owns: [
+      { who: "Strategist",    what: "Quarterly goals, KPI tracking, proactive recs" },
+      { who: "ACD",           what: "Reviews all creative before client sees it" },
+      { who: "Brand Manager", what: "Briefs team, manages expectations, moves work" },
+      { who: "CD",            what: "Available to ACD — not in the daily flow" },
+    ],
+    ops: "Ops tracks utilization, flags overages, delivers weekly data to AD. Holds team to KPI reporting schedule.",
+    cycle: "This cycle repeats quarterly. ↻",
+  },
+  {
+    label: "Stage 6",
+    title: "Feedback, testimonial, and upsell",
+    subtitle: "The client team owns expansion — performance data drives the conversation.",
+    accentColor: "#4a3fa0",
+    people: [
+      { name: "Account Director", color: "teal",  role: "Leads expansion" },
+      { name: "Brand Manager",    color: "teal",  role: "Surfaces opportunities" },
+      { name: "Strategist",       color: "teal",  role: "Performance evidence" },
+      { name: "ACD",              color: "coral", role: "Scopes creative growth" },
+    ],
+    owns: [
+      { who: "Brand Manager",    what: "Identifies and flags upsell opportunities to AD" },
+      { who: "Strategist",       what: "Pulls KPI data — proves the work is working" },
+      { who: "Account Director", what: "Structures expanded scope, closes the conversation" },
+      { who: "ACD",              what: "Scopes creative needs for expanded engagement" },
+    ],
+    ops: "Ops provides profitability and utilization data to support scope and pricing decisions.",
+    cycle: "Renewal loops to Stage 5 — or back to Stage 3 for a new Brand Being project. ↻",
+  },
+];
+
+/* ================================================================
+   COLOR MAP — maps color names above to hex values
+   ================================================================ */
+const COLOR_MAP = {
+  teal:   "#1a6b52",
+  purple: "#4a3fa0",
+  coral:  "#c8521a",
+  pink:   "#b03570",
+  gray:   "#8a8878",
+};
+
+/* ================================================================
+   RENDERING — no need to edit below here
+   ================================================================ */
+let current = 0;
+
+function render() {
+  const s = STAGES[current];
+  const total = STAGES.length;
+
+  document.getElementById('counter').textContent = `${current + 1} of ${total}`;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === total - 1;
+
+  // Progress dots
+  document.getElementById('progress').innerHTML =
+    STAGES.map((st, i) => {
+      const cls = i < current ? 'done' : i === current ? 'active' : '';
+      return `<button class="prog-dot ${cls}" onclick="goTo(${i})" aria-label="Go to ${st.label}"></button>`;
+    }).join('') +
+    `<span class="prog-label">${s.label}</span>`;
+
+  // Card accent
+  const card = document.getElementById('card');
+  card.style.setProperty('--card-accent', s.accentColor);
+
+  // People chips
+  const chips = s.people.map(p =>
+    `<div class="chip">
+      <div class="chip-dot" style="background:${COLOR_MAP[p.color]}"></div>
+      <span class="chip-name">${p.name}</span>
+      <span class="chip-role">${p.role}</span>
+    </div>`
+  ).join('');
+
+  // Owns items
+  const owns = s.owns.map(o =>
+    `<div class="owns-item">
+      <div class="owns-who">${o.who}</div>
+      <div class="owns-what">${o.what}</div>
+    </div>`
+  ).join('');
+
+  // Cycle note
+  const cycle = s.cycle
+    ? `<div class="cycle-note"><span>↻</span><span>${s.cycle}</span></div>`
+    : '';
+
+  card.innerHTML = `
+    <div class="card-eyebrow">${s.label} of ${total}</div>
+    <h2 class="card-title">${s.title}</h2>
+    <p class="card-subtitle">${s.subtitle}</p>
+    <div class="section-head">Who's in the room</div>
+    <div class="people-row">${chips}</div>
+    <div class="section-head">Who owns what</div>
+    <div class="owns-grid">${owns}</div>
+    <div class="section-head">Ops in the background</div>
+    <div class="ops-bar">${s.ops}</div>
+    ${cycle}
+  `;
+}
+
+function move(dir) {
+  current = Math.max(0, Math.min(STAGES.length - 1, current + dir));
+  render();
+}
+
+function goTo(i) { current = i; render(); }
+
+render();
+</script>
+</body>
+</html>
